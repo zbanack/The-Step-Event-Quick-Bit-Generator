@@ -1,0 +1,516 @@
+<html>
+<head>
+        <title>The Step Event | Quick Bit Generator</title>
+        <script src="https://www.gmlsnip.com/js/docs.json"></script>
+        <script src="https://www.gmlsnip.com/js/gml_syntax.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Chakra+Petch:300,400|Quicksand|Work+Sans" rel="stylesheet">
+        <script src="js/qb_template.js"></script>
+        <script src="js/better_text.js"></script>
+        <script>
+            window.onload = function() {
+              tab_pressed();
+              qb_gen();
+            }
+            function qb_gen() {
+            let img_data = qb_template();
+            let canvas = document.getElementById("myCanvas");
+            let canvas_width = canvas.width;
+            let canvas_height = canvas.height;
+            let ctx = canvas.getContext("2d");
+            let image = new Image();
+            
+           ctx.beginPath();
+           ctx.fillStyle = "#FFFFFF";
+           ctx.rect(0, 0, canvas_width-1, canvas_height);
+           ctx.fill();
+    
+            image.src = img_data;
+            ctx.drawImage(image, 0, 0, 1440, 810);
+            
+            let fields = ['qb_text', 'qb_blurb', 'qb_code', 'qb_numb'];
+            let values = [];
+            let words = [];
+            let codes = [];
+            let blurbs = [];
+            
+            for(var i in fields) {
+            values.push(document.getElementById(fields[i]).value);
+            }
+            
+            words = values[0].split(' ');
+            blurbs = values[1].split(' ');
+            codes = values[2];
+            let numb = values[3];
+            
+            let data = [];
+            let blurb = [];
+            let code = [];
+            
+            for(var i in words) {
+            let col = !words[i].includes('$') ? '#464646' : '#6101e5';
+            let fnt = !words[i].includes('$') ? '36px Work Sans' : 'bold 36px Work Sans';
+            data.push([words[i].replace(/\$/g, ''), col, fnt]);
+            }
+            
+            for(var i in blurbs) {
+            let col = '#767676';
+            let fnt = !blurbs[i].includes('$') ? '32px Work Sans' : 'bold 32px Work Sans';
+            blurb.push([blurbs[i].replace(/\$/g, ''), col, fnt]);
+            }
+
+            codes = codes.replace(/\r?\n|\r/g, '\n');
+            codes = codes.replace(/\t/g, '    ');
+            
+    let return_str = gml_syntax(codes, false);
+
+
+
+    // Create easy for the highlighter return tokens
+    let tkn_con = return_str.gm_contents;
+    let tkn_cls = return_str.gm_classes;
+
+            for(var i in tkn_con) {
+            let col = '#FFFFFF';
+            let fnt = "32px Consolas";
+            tkn_con[i] = tkn_con[i].replace(/&gt;/g, '>');
+            tkn_con[i] = tkn_con[i].replace(/&lt;/g, '<');            
+                       switch(tkn_cls[i]) {
+                           case("gm_str"):
+                               col = "#FFFF00";
+                           break;
+                           case("gm_kwd"):
+                               col = "#FFB871";
+                               fnt = "bold " + fnt;
+                           break;
+                           case("gm_fnc"):
+                               col = "#E4A667";
+                           break;
+                           case("gm_com"):
+                               col = "#5B995B";
+                           break;
+                           case("gm_typ"):
+                               col = "#606";
+                           break;
+                           case("gm_lit"):
+                               col = "#58E55A";
+                           break;
+                           case("gm_loc"):
+                               col = "#F5EF94";
+                           break;
+                           case("gm_pnc"):
+                               col = "#C0C0C0";
+                           break;
+                           case("gm_pln"):
+                               col = "#B2B1FF";
+                           break;
+                           case("gm_tag"):
+                               col = "#008";
+                           break;
+                           case("gm_int"):
+                               col = "#FF8080";
+                           break;
+                           case("gm_atn"):
+                               col = "#606";
+                           break;
+                           case("m_atv"):
+                               col = "#080";
+                           break;
+                           case("gm_dec"):
+                               col = "#FF8080";
+                           break;
+                           case("gm_glb"):
+                               col = "#FF7EFF";
+                           break;
+                           case("gm_mac"):
+                               col = "#ff2d39";
+                           break;
+                       }
+            
+            code.push([tkn_con[i].replace(/ /g, '').replace(/<br\/>/g, '\n'), col, fnt]);
+            }
+            
+            console.log(code);
+            
+            let template = {
+            width: canvas.width,
+            height: canvas.height,
+            panel: 360,
+            whitespace: canvas.width - 360,
+            padding: 30
+            }
+            
+            let text_span = template.whitespace - (template.padding * 4);
+            
+            let line_height = 40;
+            let line_height_code = 36;
+            
+            // text
+            let return_data_text = text_get_coordinates(data,  text_span + template.padding, line_height);
+            let text_width = return_data_text.width;
+            let text_height = return_data_text.height;
+            
+            // blurb
+            let return_data_blurb = text_get_coordinates(blurb, text_span, line_height);
+            let blurb_width = return_data_blurb.width;
+            let blurb_height = return_data_blurb.height;
+            
+            // code snippet
+            let return_data_code = text_get_coordinates_code(code, text_span - (template.padding * 2), line_height_code);
+            let code_width = return_data_code.width;
+            let code_height = return_data_code.height;
+            
+            let left_x = template.panel + (template.whitespace * 0.5) - (text_span * 0.5);
+            
+            let has_text = words[0].length>0;
+            let has_blurb = blurbs[0].length>0;
+            let has_code = codes.length>0;
+            
+            text_height = has_text ? text_height : 0;
+            blurb_height = has_blurb ? blurb_height : 0;
+            code_height = has_code ? code_height : 0;
+            
+            console.log(text_height, blurb_height, code_height);
+            
+            //if (!has_blurb) text_height += template.padding*3;
+            
+            let text_y = 0;
+            let blurb_y = text_y + text_height;
+            let code_y = 0;
+            
+            if (has_blurb) code_y+=blurb_height;
+            if (has_text) code_y+=text_height;
+            
+            if (has_text && has_code && has_blurb) {
+            text_y -= template.padding;
+            code_y += template.padding;
+            }
+            else if (has_text && has_blurb && !has_code) {
+            text_y -= template.padding * 0.5; 
+            blurb_y += template.padding * 0.5;        
+            }
+            else if (has_code && has_text && !has_blurb) {
+            text_y -= template.padding * 1; 
+            code_y += template.padding * 1;               
+            }
+            else if (has_blurb && has_code) {
+            blurb_y -= template.padding * 0.5;  
+            code_y += template.padding * 0.5;             
+            }
+            
+            let capsule_height = text_height + blurb_height + code_height;
+            let diff_y = (template.height * 0.5) - (capsule_height * 0.5);
+            if (has_code) diff_y-=(template.padding);
+            
+            // draw text
+            if (has_text) text_draw(data, left_x, text_y + diff_y, text_span + template.padding, line_height);
+            
+            // draw blurb
+            if (has_blurb) text_draw(blurb, template.panel + (template.whitespace * 0.5) - (blurb_width * 0.5) , blurb_y + diff_y, text_span - (template.padding*2), line_height);
+            
+            // draw code
+            if (has_code) {
+                    ctx.beginPath();
+                    ctx.fillStyle = "#272727";
+                    ctx.rect(left_x, code_y + diff_y, text_span, code_height + (template.padding * 2));
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.fillStyle = "#13e501";
+                    ctx.rect(left_x, code_y + diff_y - 3, text_span, 6);
+                    ctx.fill()
+                    ctx.fillStyle = "#FFFFFF";
+            
+            text_draw_code(code, left_x + (template.padding * 2), code_y + diff_y + template.padding, text_span - (template.padding * 4), line_height_code);
+            }
+            
+            // #ID
+                 ctx.textAlign="center";
+                 ctx.fillStyle = "rgba(255,255,255,0.5)";
+                 ctx.font = "400 36px Chakra Petch";
+                 ctx.fillText(numb, template.panel * 0.5, 540);
+            
+                 gen_file_name();
+            }
+            
+            function tab_pressed() {
+            var textareas = document.getElementsByTagName('textarea');
+                  if ( textareas ) {
+                      for ( var i = 0; i < textareas.length; i++ ) {
+                          textareas[i].addEventListener( 'keydown', function ( e ) {
+                              if ( e.which != 9 ) return;
+            
+                              var start           = this.selectionStart;
+                              var end             = this.selectionEnd;
+            
+                              this.value          = this.value.substr( 0, start ) + "\t" + this.value.substr( end );
+                              this.selectionStart = this.selectionEnd = start + 1;
+            
+                              e.preventDefault();
+                              return false;
+                          });
+                      }
+                  }
+            }
+            
+            function gen_file_name() {
+            let ti = document.getElementById('qb_title').value;
+            if (ti.length < 1) ti = 'download';
+            ti = ti.replace(/[\W_]+/g,'-').toLowerCase();
+            return 'the-step-event-' + ti;
+            }
+            
+            function qb_download() {
+            let canvas = document.getElementById("myCanvas");
+            let link = document.getElementById('link');
+            link.setAttribute('download', gen_file_name() + '.png');
+            link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+            link.click();
+            }
+
+            function social_gen() {
+              let return_str = '';
+              let e = ['card_site', 'card_creator', 'card_title', 'card_description', 'card_image', 'qb_numb', 'card_credit', 'card_description_short'];
+              let s = [];
+              for(var i in e) {
+                s.push(document.getElementById(e[i]).value);
+              }
+
+              return_str+="<!-- Twitter Card Begin -->\n"
+              return_str+='<meta name="twitter:card" content="summary_large_image">\n';
+        return_str+='<meta name="twitter:site" content="' + s[0] + '">\n';
+        return_str+='<meta name="twitter:creator" content="' + s[1] + '">\n';
+        return_str+='<meta name="twitter:title" content="' + s[2] + '">\n';
+        return_str+='<meta name="twitter:description" content="' + s[3] + '">\n';
+        return_str+='<meta name="twitter:image" content="' + s[4] + '">\n';
+        return_str+="<!-- Twitter Card End -->\n\n";
+
+        return_str+="<!-- Facebook Card Begin -->\n"
+        return_str+='<meta name="og:url" content="' + s[0] + '">\n';
+        return_str+='<meta name="og:type" content="article">\n';
+        return_str+='<meta name="og:title" content="' + s[2] + '">\n';
+        return_str+='<meta name="og:description" content="' + s[3] + '">\n';
+        return_str+='<meta name="og:image" content="' + s[4] + '">\n';
+        return_str+="<!-- Facebook Card End -->";
+
+        let txt = "";
+
+        txt+=s[7] + " \uD83D\uDCA1 GameMaker Quick Bit " + s[5] + " comes from " + s[6] + "\n\n";
+        txt+="In-depth explanation and sources \u00BB " + s[0] + "\n\n";
+        txt+="#GameMaker #GML #gamedev @YoYoGames";
+
+        document.getElementById('social_output').value = return_str;
+        document.getElementById('message_output').value = txt;
+
+        //
+            }
+        </script>
+        <style>
+            #scaled{
+            zoom: 0.5;
+            -moz-transform: scale(0.5);
+            }
+
+            #container {
+            display: inline-block;
+            }
+            #canv {
+            box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.1);
+            margin: 0;
+            line-height: 1px;
+            padding: 0;
+            }
+            textarea, input {
+            padding: 12px 20px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #f8f8f8;
+            resize: none;
+            width: 100%;
+            margin-top:8px;
+            margin-bottom:8px;
+            }
+            textarea {
+            height: 96px;
+            }
+            .button {
+            background-color: rgba(0, 0, 0, 0.75);
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius:2px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.125);
+            }
+            h1, h2, h3, body{
+            font-family: 'Work Sans';
+            text-align:left;
+
+            }
+            .column-left, .column-right {
+            float: left;
+            padding: 0px;
+            margin: 0px;
+            }
+            .column-left {
+            width:18%;
+            padding-right:2%;
+        display: table-cell;
+        vertical-align: middle;
+        text-align:left;
+            }
+            .column-left p {
+              color: rgba(0, 0, 0, 0.5);
+            }
+            .column-right {
+            width:80%;
+            }
+            /* Clear floats after the columns */
+            .row:after {
+            content: "";
+            display: table;
+            clear: both;
+            }
+            .output {
+              background-color:#898989;
+            }
+            #outer {
+              width:100%
+            }
+      #inner {
+        display: table;
+        margin: 0 auto;
+        width:800px;
+      }
+      .TSE {
+        font-family: 'Quicksand';
+      }
+      .spacer {
+        height:15px;
+      }
+
+      .collapsible {
+        cursor: pointer;
+        border: none;
+        outline: none;
+      }
+
+      .active, .collapsible:hover {
+        color:rgba(0, 0, 0, 0.8);
+      }
+
+      .content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+      }
+        </style>
+    </head>
+    <body>
+      <div id="outer">
+        <div id="inner">
+            <div id="container">
+                <h1><span class="TSE">The Step Event</span> Tooling</h1>
+                <div class="spacer"></div>
+                <h2 class="collapsible" onclick="qb_gen();">+ Quick Bit Generator</h2>
+                <div class="content" style="">
+                <div id="canv">
+                    <div id="scaled">
+                        <canvas id="myCanvas" width="1440" height="810">Your browser does not support the HTML5 canvas tag.</canvas>
+                    </div>
+
+                </div>
+                <div class="spacer"></div>
+                <div class="row">
+                    <div class="column-left">
+                        <input type="text" id="qb_numb" value="#01">
+                    </div>
+                    <div class="column-right">
+                        <input type="text" id="qb_title" value="Title">
+                    </div>
+                </div>
+                <textarea type="text" id="qb_text">$instance_create_layer and $instance_create_depth functions return the $id of the newly-created instance. You can store this value in a variable so the particular instance can be addressed.</textarea>
+                <br>
+                <input type="text" id="qb_blurb" value="test blurb"><br>
+                <textarea type="text" id="qb_code">var timezone = date_get_timezone();
+var timezone = date_get_timezone();
+date_set_timezone(timezone_utc);
+
+if (argument_count &gt; 0) {
+  var datetime = argument[0];
+} else {
+  var datetime = date_current_datetime();
+}</textarea>
+
+        <div class="spacer"></div>
+                <button class="button" onclick="qb_gen()">Re-Generate</button>&nbsp;<button class="button" onclick="qb_download()">Download</button>&nbsp;<a href="" target="_blank"><button class="button">Upload</button></a>
+                </div>
+                <div class="spacer"></div>
+                <hr>
+                <h2 class="collapsible active">Social Media and Page Info</h2>
+                <div class="content" style="max-height: 848px;">
+                <div class="row">
+                    <div class="column-left"><p>Site</p></div>
+                    <div class="column-right"><input type="text" id="card_site" value="https://thestepevent.com"></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Creator</p></div>
+                    <div class="column-right"><input type="text" id="card_creator" value="@TheStepEvent"></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Title</p></div>
+                    <div class="column-right"><input type="text" id="card_title" value="Title goes here"></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Description</p></div>
+                    <div class="column-right"><input type="text" id="card_description" value="Description goes here"></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Description (Short)</p></div>
+                    <div class="column-right"><input type="text" id="card_description_short" value="Three word description"></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Image</p></div>
+                    <div class="column-right"><input type="text" id="card_image" value=""></div>
+                </div>
+                <div class="row">
+                    <div class="column-left"><p>Credit</p></div>
+                    <div class="column-right"><input type="text" id="card_credit" value="Twitter user @zackbanack"></div>
+                </div>
+                <div class="spacer"></div>
+                <button class="button" onclick="social_gen()">Generate</button>
+                <div class="spacer"></div>
+                <h3>&lt;head&gt; Output</h3>
+                <textarea id="social_output" class="output" readonly=""></textarea>
+                <h3>Posts Output</h3>
+                <textarea id="message_output" class="output" readonly=""></textarea>
+                </div>
+            </div>
+        <a id="link"></a>
+		<p>Developed by <a href="https://zackbanack.com">Zack Banack</a></p>
+		<p>View the source code on <a href="https://github.com/zbanack/the-step-event-quick-bit-generator">Github</a></p>
+    </div>
+</div>
+
+    <script>
+      var coll = document.getElementsByClassName("collapsible");
+      var i;
+
+      for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+          if (content.style.maxHeight){
+            content.style.maxHeight = null;
+          } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+          } 
+        });
+      }
+    </script>
+    
+</body></html>
